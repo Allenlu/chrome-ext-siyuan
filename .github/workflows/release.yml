@@ -31,31 +31,27 @@ jobs:
           echo "new=$NEW" >> "$GITHUB_OUTPUT"
           echo "old=$OLD" >> "$GITHUB_OUTPUT"
 
-      - name: Guard
+      - name: Tag if version bumped
         if: steps.ver.outputs.new != steps.ver.outputs.old
         env:
+          GH_TOKEN: ${{ github.token }}
           NEW: ${{ steps.ver.outputs.new }}
           OLD: ${{ steps.ver.outputs.old }}
         run: |
           if [ -z "$OLD" ]; then
-            echo "拿不到旧版本号（首次推送或异常事件），跳过自动打 tag"
+            echo "拿不到旧版本号（首次推送或异常事件），跳过"
+            exit 0
+          fi
+          # 先查 tag 是否已存在（如 dev→main 同步已发过的版本），存在就直接跳过，
+          # 避免把「版本号名义回退」误判成事故
+          if git ls-remote --exit-code --tags origin "refs/tags/v$NEW" >/dev/null 2>&1; then
+            echo "tag v$NEW 已存在（该版本已发过），跳过"
             exit 0
           fi
           LOWEST=$(printf '%s\n%s\n' "$OLD" "$NEW" | sort -V | head -1)
           if [ "$LOWEST" != "$NEW" ]; then
             echo "::error::版本号回退（$OLD → $NEW），拒绝自动发版"
             exit 1
-          fi
-
-      - name: Create tag
-        if: steps.ver.outputs.new != steps.ver.outputs.old && steps.ver.outputs.old != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          NEW: ${{ steps.ver.outputs.new }}
-        run: |
-          if git ls-remote --exit-code --tags origin "refs/tags/v$NEW" >/dev/null 2>&1; then
-            echo "tag v$NEW 已存在，跳过"
-            exit 0
           fi
           git tag "v$NEW"
           git push origin "v$NEW"
