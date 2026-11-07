@@ -1,0 +1,61 @@
+name: auto-release
+
+# 监听 main 上的 push：manifest.json 版本号变化时自动打 v<version> tag，
+# 连锁触发 build.yml（tag → 出包 + Release）。
+# 防呆：tag 已存在则跳过；版本号回退（旧 → 新变小）直接报错拦截；首次推送/异常事件不动作。
+# 注意：workflow 只在事件发生分支上读取，本文件随 dev 合入 main 后才生效。
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  tag-on-version-bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 需要用 push 前的 commit（github.event.before）对比旧版本号
+
+      - name: Compare manifest version
+        id: ver
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          NEW=$(jq -r '.version' manifest.json)
+          OLD=$(git show "$BEFORE:manifest.json" 2>/dev/null | jq -r '.version' || true)
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          echo "old=$OLD" >> "$GITHUB_OUTPUT"
+
+      - name: Guard
+        if: steps.ver.outputs.new != steps.ver.outputs.old
+        env:
+          NEW: ${{ steps.ver.outputs.new }}
+          OLD: ${{ steps.ver.outputs.old }}
+        run: |
+          if [ -z "$OLD" ]; then
+            echo "拿不到旧版本号（首次推送或异常事件），跳过自动打 tag"
+            exit 0
+          fi
+          LOWEST=$(printf '%s\n%s\n' "$OLD" "$NEW" | sort -V | head -1)
+          if [ "$LOWEST" != "$NEW" ]; then
+            echo "::error::版本号回退（$OLD → $NEW），拒绝自动发版"
+            exit 1
+          fi
+
+      - name: Create tag
+        if: steps.ver.outputs.new != steps.ver.outputs.old && steps.ver.outputs.old != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEW: ${{ steps.ver.outputs.new }}
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/v$NEW" >/dev/null 2>&1; then
+            echo "tag v$NEW 已存在，跳过"
+            exit 0
+          fi
+          git tag "v$NEW"
+          git push origin "v$NEW"
