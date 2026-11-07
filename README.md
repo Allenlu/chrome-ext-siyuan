@@ -117,7 +117,3 @@ chrome-ext-siyuan/
 - iframe 内的选区不采集（content script 仅顶层 frame）
 - 未做"追加到收集箱"模式（当前每次摘录新建文档）；官方 createDocWithMd 语义下重复标题会并存，靠文档内时间戳区分
 
----
-
-> 迭代方向、验收清单、打包与 CI 见 `PLAN.md`（本地维护，不入库）。
-
