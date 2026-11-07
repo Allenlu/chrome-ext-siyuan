@@ -1,0 +1,28 @@
+{
+    "manifest_version": 3,
+    "name": "思源划词收藏（SiYuan Clipper）",
+    "version": "1.0.0",
+    "description": "划词/整页一键保存到思源笔记：直接建文档、图片自动转存 assets、toast 反馈。",
+    "permissions": ["contextMenus", "storage"],
+    "host_permissions": ["http://*/*", "https://*/*"],
+    "background": { "service_worker": "background.js" },
+    "action": { "default_popup": "options.html", "default_title": "思源划词收藏" },
+    "options_ui": { "page": "options.html", "open_in_tab": true },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content.js"],
+            "run_at": "document_end"
+        }
+    ],
+    "commands": {
+        "send-selection": {
+            "suggested_key": { "default": "Alt+S" },
+            "description": "发送选中内容到思源"
+        },
+        "send-article": {
+            "suggested_key": { "default": "Alt+Y" },
+            "description": "发送整页到思源"
+        }
+    }
+}
