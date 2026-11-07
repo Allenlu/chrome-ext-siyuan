@@ -32,11 +32,13 @@ jobs:
           path: dist/*.zip
           if-no-files-found: error
 
-      # 仅打 v* tag 时发布 Release；重复运行时若 Release 已存在则只补传文件
+      # 仅打 v* tag 时发布 Release；已存在则清空旧 asset 后重传（版本改名不残留旧包）
       - name: Create release (tags only)
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/*.zip --generate-notes \
-            || gh release upload "$GITHUB_REF_NAME" dist/*.zip --clobber
+          gh release create "$GITHUB_REF_NAME" --generate-notes || true
+          gh release view "$GITHUB_REF_NAME" --json assets -q '.assets[].name' \
+            | xargs -r -n1 gh release delete-asset "$GITHUB_REF_NAME" --yes
+          gh release upload "$GITHUB_REF_NAME" dist/*.zip --clobber
