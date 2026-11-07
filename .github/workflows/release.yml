@@ -39,18 +39,24 @@ jobs:
           OLD: ${{ steps.ver.outputs.old }}
         run: |
           if [ -z "$OLD" ]; then
-            echo "拿不到旧版本号（首次推送或异常事件），跳过"
+            echo "manifest 首次出现在 main，保守起见不自动打 tag"
             exit 0
           fi
-          # 先查 tag 是否已存在（如 dev→main 同步已发过的版本），存在就直接跳过，
-          # 避免把「版本号名义回退」误判成事故
-          if git ls-remote --exit-code --tags origin "refs/tags/v$NEW" >/dev/null 2>&1; then
-            echo "tag v$NEW 已存在（该版本已发过），跳过"
+          # 对比基准 = 远端最新 v* tag（真正的发版事实源）。
+          # 不用 main 上一版 manifest：它可能过期（如初始 1.0.0 高于实际发布的 0.0.1）。
+          MAX_TAG=$(git ls-remote --tags origin 'refs/tags/v*' \
+            | sed 's|.*refs/tags/v||' | grep -v '\^{}' | sort -V | tail -1)
+          if [ -z "$MAX_TAG" ]; then
+            echo "远端还没有任何 v* tag，保守起见不自动打 tag"
             exit 0
           fi
-          LOWEST=$(printf '%s\n%s\n' "$OLD" "$NEW" | sort -V | head -1)
+          if [ "$NEW" = "$MAX_TAG" ]; then
+            echo "v$NEW 已发布过（与最新 tag 一致），跳过"
+            exit 0
+          fi
+          LOWEST=$(printf '%s\n%s\n' "$MAX_TAG" "$NEW" | sort -V | head -1)
           if [ "$LOWEST" != "$NEW" ]; then
-            echo "::error::版本号回退（$OLD → $NEW），拒绝自动发版"
+            echo "::error::版本号 $NEW 低于已发布的 v$MAX_TAG，拒绝自动发版"
             exit 1
           fi
           git tag "v$NEW"
