@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "思源划词收藏（SiYuan Clipper）",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "description": "划词/整页一键保存到思源笔记：直接建文档、图片自动转存 assets、toast 反馈。",
     "permissions": ["contextMenus", "storage"],
     "host_permissions": ["http://*/*", "https://*/*"],
