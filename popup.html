@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <title>思源划词收藏</title>
+    <link rel="stylesheet" href="ui.css">
+    <style>
+        body {
+            width: 300px;
+        }
+
+        .pop {
+            padding: 14px;
+        }
+
+        .pop-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .pop-title {
+            font-size: 14px;
+            font-weight: 650;
+            letter-spacing: -.2px;
+        }
+
+        .pop-badge {
+            color: var(--text-3);
+            font-size: 11px;
+        }
+
+        .send {
+            width: 100%;
+            height: 38px;
+            border: 0;
+            border-radius: 10px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background .15s;
+        }
+
+        .send:hover {
+            background: var(--accent-h);
+        }
+
+        .section-label {
+            margin: 16px 0 7px;
+            color: var(--text-3);
+            font-size: 11px;
+        }
+
+        .tpl-card {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--card);
+            text-align: left;
+            font: inherit;
+            color: var(--text);
+            cursor: pointer;
+            transition: border-color .15s, background .15s;
+        }
+
+        .tpl-card:hover {
+            border-color: var(--accent);
+            background: var(--accent-bg);
+        }
+
+        .tpl-card.static {
+            cursor: default;
+            background: var(--inset);
+            border-style: dashed;
+        }
+
+        .tpl-card.static:hover {
+            border-color: var(--border);
+            background: var(--inset);
+        }
+
+        .tpl-card b {
+            font-size: 13px;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+
+        .tpl-sub {
+            margin-top: 2px;
+            color: var(--text-3);
+            font-size: 11.5px;
+            word-break: break-all;
+        }
+
+        .links {
+            margin-top: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--card);
+        }
+
+        .link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 9px 12px;
+            border: 0;
+            border-bottom: 1px solid var(--border);
+            border-radius: 0;
+            background: transparent;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .link:last-child {
+            border-bottom: 0;
+        }
+
+        .link:hover {
+            background: var(--inset);
+        }
+
+        .chev {
+            color: var(--text-3);
+            font-size: 14px;
+        }
+
+        .foot {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+            color: var(--text-3);
+            font-size: 11.5px;
+        }
+
+        .foot.err {
+            color: var(--danger);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pop">
+        <div class="pop-head">
+            <span class="pop-title">思源划词收藏</span>
+            <span class="pop-badge">Alt+S 摘录 · Alt+Y 整页</span>
+        </div>
+
+        <button id="send-article" class="send">发送整页到思源</button>
+
+        <div class="section-label">当前站点模板</div>
+        <div id="tpl-box"></div>
+
+        <div class="links">
+            <button id="manage-tpl" class="link"><span>管理模板</span><span class="chev">›</span></button>
+            <button id="open-siyuan" class="link"><span>思源连接</span><span class="chev">›</span></button>
+        </div>
+
+        <div class="foot" id="status"></div>
+    </div>
+
+    <script src="templates.js"></script>
+    <script src="popup.js"></script>
+</body>
+
+</html>

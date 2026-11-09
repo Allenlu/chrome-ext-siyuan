@@ -11,7 +11,7 @@ VERSION=${VERSION:-dev}
 OUT_DIR="dist"
 OUT="$OUT_DIR/${NAME}-v${VERSION}.zip"
 
-FILES=(manifest.json background.js content.js options.html options.js README.md)
+FILES=(manifest.json background.js ai.js templates.js content.js ui.css popup.html popup.js options.html options.js README.md)
 
 mkdir -p "$OUT_DIR"
 rm -f "$OUT"

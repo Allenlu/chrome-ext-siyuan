@@ -1,6 +1,8 @@
 // 思源划词收藏 · background service worker
 // 所有内核请求都在这层发：host_permissions 免 CORS，且避开页面上下文的 LNA 内网限制。
 
+importScripts("ai.js");
+
 const CFG_DEFAULTS = { server: "", token: "", notebookId: "", notebookName: "" };
 
 const getCfg = () => new Promise((resolve) => chrome.storage.sync.get(CFG_DEFAULTS, resolve));
@@ -92,7 +94,7 @@ async function handleClip(data) {
 
 /* ================= 消息路由 ================= */
 
-chrome.runtime.onMessage.addListener((msg, sender) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg?.func === "open-settings") {
         chrome.runtime.openOptionsPage(() => {
             if (chrome.runtime.lastError) chrome.tabs.create({ url: chrome.runtime.getURL("options.html") });
@@ -103,6 +105,15 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
         handleClip(msg.data).then((result) => {
             chrome.tabs.sendMessage(sender.tab.id, { func: "tip", ok: result.ok, msg: result.msg });
         });
+        return;
+    }
+    // 设置页的「测试连接」：只验地址 / Key / 模型，不涉及模板
+    if (msg?.func === "test-ai") {
+        const started = Date.now();
+        chatCompletion(msg.ai || {}, "只回复两个字：正常", { maxTokens: 16, timeout: 30000 })
+            .then((out) => sendResponse({ ok: true, content: out.content, ms: Date.now() - started }))
+            .catch((e) => sendResponse({ ok: false, msg: e.message }));
+        return true;
     }
 });
 
